@@ -51,6 +51,18 @@ resource "aws_iam_instance_profile" "bastion" {
   role = aws_iam_role.default.name
 }
 
+resource "aws_iam_instance_profile" "micro_service" {
+  name = "${local.name_prefix}-micro-service-profile"
+  role = aws_iam_role.default.name
+}
+
+// ec2-micro-serviceにECRのroleを付与
+resource "aws_iam_policy_attachment" "ec2-role-attach" {
+  name       = "ec2-role-attach"
+  roles      = ["${aws_iam_role.default.name}"]
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+}
+
 resource "aws_iam_role" "default" {
   name = "${local.name_prefix}-default-ec2"
   path = "/"
@@ -78,4 +90,27 @@ resource "aws_iam_role_policy" "bastion" {
   name   = "${local.name_prefix}-bastion-policy"
   role   = aws_iam_role.default.id
   policy = data.aws_iam_policy.ssm_core.policy
+}
+
+resource "aws_iam_role" "amplify_role" {
+  name = "AmplifyNextJsRole"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Principal = {
+          Service = "amplify.amazonaws.com"
+        },
+        Effect = "Allow",
+        Sid    = ""
+      }
+    ]
+  })
+}
+
+
+resource "aws_iam_role_policy_attachment" "s3_full_access" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+  role       = aws_iam_role.amplify_role.name
 }

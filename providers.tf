@@ -4,6 +4,10 @@ provider "aws" {
   secret_key = var.secret_key
 }
 
+provider "vercel" {
+  api_token = var.vercel_api_token
+}
+
 terraform {
   required_providers {
     aws = {
@@ -17,6 +21,10 @@ terraform {
     kubectl = {
       source  = "gavinbunney/kubectl"
       version = ">= 1.7.0"
+    }
+    vercel = {
+      source  = "vercel/vercel"
+      version = "~> 0.4"
     }
   }
   required_version = ">= 0.13"
